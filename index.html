@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#3b82f6" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="German ↔ English vocabulary trainer for Netzwerk neu A1 with statistics" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <title>A1 Deutsch Quiz</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface2: #243044;
+      --border: #2d3a4f;
+      --text: #e7ecf3;
+      --muted: #8b9bb4;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --success: #22c55e;
+      --error: #ef4444;
+      --warning: #f59e0b;
+      --radius: 14px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body { display: flex; flex-direction: column; min-height: 100dvh; }
+    .app {
+      flex: 1;
+      max-width: 720px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 0.75rem 1rem calc(4.5rem + var(--safe-bottom));
+      display: flex;
+      flex-direction: column;
+    }
+    header.app-header {
+      text-align: center;
+      padding: 0.5rem 0 0.75rem;
+      flex-shrink: 0;
+    }
+    header.app-header h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    header.app-header p { color: var(--muted); font-size: 0.8rem; margin-top: 0.15rem; }
+
+    /* Bottom nav */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: center;
+      padding: 0.4rem 0 calc(0.4rem + var(--safe-bottom));
+      z-index: 100;
+    }
+    .bottom-nav-inner {
+      display: flex;
+      max-width: 720px;
+      width: 100%;
+      justify-content: space-around;
+    }
+    .nav-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 0.7rem;
+      cursor: pointer;
+      padding: 0.35rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.15rem;
+      font-family: inherit;
+      transition: color 0.15s;
+    }
+    .nav-btn.active { color: var(--accent); }
+    .nav-btn .icon { font-size: 1.25rem; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem;
+      margin-bottom: 0.75rem;
+    }
+    .section-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+    .mode-select {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.45rem;
+      margin-bottom: 0.85rem;
+    }
+    .mode-btn {
+      background: var(--surface2);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 0.65rem 0.7rem;
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      text-align: left;
+      font: inherit;
+    }
+    .mode-btn:hover { border-color: var(--accent); }
+    .mode-btn.active {
+      border-color: var(--accent);
+      background: rgba(59, 130, 246, 0.18);
+    }
+    .mode-btn strong { display: block; font-size: 0.85rem; margin-bottom: 0.1rem; }
+    .mode-btn span { font-size: 0.7rem; color: var(--muted); }
+
+    .chapter-actions { display: flex; gap: 0.75rem; margin-bottom: 0.45rem; }
+    .link-btn {
+      background: none; border: none; color: var(--accent);
+      font-size: 0.78rem; cursor: pointer; padding: 0; font-family: inherit;
+    }
+    .link-btn:hover { text-decoration: underline; }
+    .link-btn.danger { color: var(--error); }
+
+    .chapter-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.35rem;
+      max-height: 220px;
+      overflow-y: auto;
+      margin-bottom: 0.75rem;
+      -webkit-overflow-scrolling: touch;
+    }
+    .chapter-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.4rem 0.5rem;
+      cursor: pointer;
+      font-size: 0.75rem;
+      user-select: none;
+    }
+    .chapter-item:hover { border-color: var(--accent); }
+    .chapter-item input { accent-color: var(--accent); width: 14px; height: 14px; flex-shrink: 0; }
+    .chapter-item .ch-num { font-weight: 700; color: var(--accent); min-width: 1.2rem; }
+    .chapter-item .ch-title { flex: 1; line-height: 1.2; }
+    .chapter-item .ch-count { font-size: 0.65rem; color: var(--muted); white-space: nowrap; }
+
+    .settings {
+      display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem;
+    }
+    .settings label {
+      display: flex; align-items: center; gap: 0.3rem;
+      font-size: 0.82rem; color: var(--muted);
+    }
+    select {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); border-radius: 8px; padding: 0.3rem 0.45rem;
+      font-size: 0.82rem; font-family: inherit;
+    }
+
+    .btn {
+      background: var(--accent); color: #fff; border: none;
+      border-radius: 12px; padding: 0.7rem 1.2rem;
+      font-size: 0.92rem; font-weight: 600; cursor: pointer;
+      font-family: inherit; transition: background 0.15s; width: 100%;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-secondary {
+      background: var(--surface2); border: 1px solid var(--border);
+      color: var(--text); width: auto;
+    }
+    .btn-secondary:hover { background: var(--border); }
+    .btn-row {
+      display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.85rem;
+    }
+    .btn-row .btn { width: auto; flex: 1; min-width: 90px; }
+
+    #selected-count {
+      margin-top: 0.5rem; font-size: 0.78rem; color: var(--muted); text-align: center;
+    }
+
+    /* Screens */
+    .screen { display: none; flex-direction: column; flex: 1; }
+    .screen.active { display: flex; }
+
+    .progress-bar {
+      height: 5px; background: var(--surface2); border-radius: 3px;
+      overflow: hidden; margin-bottom: 0.55rem; flex-shrink: 0;
+    }
+    .progress-fill {
+      height: 100%; background: linear-gradient(90deg, var(--accent), #a78bfa);
+      transition: width 0.3s; width: 0%;
+    }
+    .stats-row {
+      display: flex; justify-content: space-between;
+      font-size: 0.78rem; color: var(--muted); margin-bottom: 0.65rem;
+    }
+    .question-card {
+      text-align: center; padding: 1.2rem 0.65rem;
+      flex: 1; display: flex; flex-direction: column; justify-content: center;
+    }
+    .direction {
+      font-size: 0.7rem; color: var(--muted); text-transform: uppercase;
+      letter-spacing: 0.06em; margin-bottom: 0.3rem;
+    }
+    .chapter-tag {
+      display: inline-block; font-size: 0.65rem;
+      background: rgba(59,130,246,0.2); color: #93c5fd;
+      padding: 0.1rem 0.45rem; border-radius: 999px;
+      margin-bottom: 0.45rem; align-self: center;
+    }
+    .prompt {
+      font-size: 1.45rem; font-weight: 600; margin-bottom: 1rem;
+      min-height: 2rem; word-break: break-word;
+    }
+    .options { display: grid; gap: 0.4rem; width: 100%; }
+    .option {
+      background: var(--surface2); border: 2px solid var(--border);
+      border-radius: 12px; padding: 0.7rem 0.8rem; cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      font-size: 0.95rem; text-align: left; font-family: inherit; color: var(--text);
+    }
+    .option:hover:not(.disabled) { border-color: var(--accent); }
+    .option.correct { border-color: var(--success); background: rgba(34, 197, 94, 0.15); }
+    .option.wrong { border-color: var(--error); background: rgba(239, 68, 68, 0.15); }
+    .option.disabled { cursor: default; opacity: 0.75; }
+
+    .type-input {
+      width: 100%; background: var(--surface2); border: 2px solid var(--border);
+      border-radius: 12px; padding: 0.75rem 0.9rem; font-size: 1.05rem;
+      color: var(--text); text-align: center; font-family: inherit;
+    }
+    .type-input:focus { outline: none; border-color: var(--accent); }
+    .type-input.correct { border-color: var(--success); }
+    .type-input.wrong { border-color: var(--error); }
+
+    .feedback { margin-top: 0.65rem; min-height: 1.25rem; font-size: 0.88rem; }
+    .feedback.ok { color: var(--success); }
+    .feedback.bad { color: var(--error); }
+
+    .score-big { font-size: 2.8rem; font-weight: 700; margin: 0.4rem 0; }
+    .score-big.good { color: var(--success); }
+    .score-big.mid { color: var(--warning); }
+    .score-big.low { color: var(--error); }
+
+    .missed {
+      text-align: left; margin-top: 0.9rem; max-height: 180px; overflow-y: auto;
+    }
+    .missed h3 { font-size: 0.82rem; color: var(--muted); margin-bottom: 0.3rem; }
+    .missed-item {
+      display: flex; justify-content: space-between; gap: 0.45rem;
+      padding: 0.28rem 0; border-bottom: 1px solid var(--border); font-size: 0.8rem;
+    }
+    .missed-item .de { font-weight: 600; }
+    .missed-item .en { color: var(--muted); text-align: right; }
+
+    /* Stats screen */
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.55rem;
+      margin-bottom: 0.85rem;
+    }
+    .stat-box {
+      background: var(--surface2);
+      border-radius: 12px;
+      padding: 0.85rem;
+      text-align: center;
+    }
+    .stat-box .val {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .stat-box .lbl {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-top: 0.15rem;
+    }
+    .chapter-progress {
+      margin-top: 0.5rem;
+    }
+    .ch-prog-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.45rem;
+      font-size: 0.78rem;
+    }
+    .ch-prog-row .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ch-prog-bar {
+      flex: 1.2;
+      height: 8px;
+      background: var(--surface2);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .ch-prog-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+    .ch-prog-pct { width: 2.5rem; text-align: right; color: var(--muted); font-size: 0.72rem; }
+
+    .history-list { max-height: 220px; overflow-y: auto; }
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8rem;
+    }
+    .history-item .date { color: var(--muted); font-size: 0.72rem; }
+    .history-item .score { font-weight: 600; }
+    .history-item .score.good { color: var(--success); }
+    .history-item .score.mid { color: var(--warning); }
+    .history-item .score.low { color: var(--error); }
+
+    .weak-list { max-height: 180px; overflow-y: auto; }
+    .weak-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.35rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8rem;
+    }
+    .weak-item .count { color: var(--error); font-weight: 600; font-size: 0.75rem; }
+
+    .empty-state {
+      text-align: center;
+      color: var(--muted);
+      padding: 1.5rem 1rem;
+      font-size: 0.9rem;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: auto;
+      padding-top: 0.75rem;
+      font-size: 0.68rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 480px) {
+      .mode-select, .chapter-grid, .stat-grid { grid-template-columns: 1fr; }
+      .chapter-grid { max-height: 180px; }
+      .prompt { font-size: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <h1>🇩🇪 A1 Deutsch Quiz</h1>
+      <p>Netzwerk neu · with statistics</p>
+    </header>
+
+    <!-- QUIZ SETUP -->
+    <div id="screen-setup" class="screen active">
+      <div class="card">
+        <div class="section-title">Quiz mode</div>
+        <div class="mode-select">
+          <button type="button" class="mode-btn active" data-mode="mc-de-en">
+            <strong>Multiple Choice</strong>
+            <span>German → English</span>
+          </button>
+          <button type="button" class="mode-btn" data-mode="mc-en-de">
+            <strong>Multiple Choice</strong>
+            <span>English → German</span>
+          </button>
+          <button type="button" class="mode-btn" data-mode="type-de-en">
+            <strong>Type Answer</strong>
+            <span>German → English</span>
+          </button>
+          <button type="button" class="mode-btn" data-mode="type-en-de">
+            <strong>Type Answer</strong>
+            <span>English → German</span>
+          </button>
+        </div>
+
+        <div class="section-title">Chapters</div>
+        <div class="chapter-actions">
+          <button type="button" class="link-btn" id="select-all">Select all</button>
+          <button type="button" class="link-btn" id="select-none">Select none</button>
+        </div>
+        <div class="chapter-grid" id="chapter-grid"></div>
+
+        <div class="settings">
+          <label>
+            Questions:
+            <select id="num-questions">
+              <option value="10">10</option>
+              <option value="15" selected>15</option>
+              <option value="20">20</option>
+              <option value="30">30</option>
+              <option value="50">50</option>
+              <option value="0">All selected</option>
+            </select>
+          </label>
+          <label>
+            <input type="checkbox" id="shuffle" checked /> Shuffle
+          </label>
+        </div>
+
+        <button type="button" class="btn" id="start-btn">Start Quiz</button>
+        <p id="selected-count"></p>
+      </div>
+    </div>
+
+    <!-- QUIZ PLAY -->
+    <div id="screen-quiz" class="screen">
+      <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+      <div class="stats-row">
+        <span id="q-counter">1 / 15</span>
+        <span id="score-live">Score: 0</span>
+      </div>
+      <div class="card question-card">
+        <div class="direction" id="direction">German → English</div>
+        <div class="chapter-tag" id="chapter-tag"></div>
+        <div class="prompt" id="prompt">—</div>
+        <div id="options-area" class="options"></div>
+        <div id="type-area" style="display:none">
+          <input type="text" class="type-input" id="type-input" placeholder="Type your answer…" autocomplete="off" enterkeyhint="done" />
+        </div>
+        <div class="feedback" id="feedback"></div>
+        <div class="btn-row">
+          <button type="button" class="btn" id="next-btn" style="display:none">Next</button>
+          <button type="button" class="btn btn-secondary" id="skip-btn">Skip</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div id="screen-results" class="screen">
+      <div class="card" style="text-align:center; flex:1; display:flex; flex-direction:column;">
+        <h2 style="font-size:1.15rem">Quiz Complete!</h2>
+        <div class="score-big" id="final-score">0%</div>
+        <p id="final-detail">0 / 0 correct</p>
+        <p id="saved-note" style="font-size:0.75rem;color:var(--muted);margin-top:0.25rem"></p>
+        <div class="missed" id="missed-list"></div>
+        <div class="btn-row" style="justify-content:center; margin-top:1rem">
+          <button type="button" class="btn" id="retry-btn">Try Again</button>
+          <button type="button" class="btn btn-secondary" id="home-btn">Home</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STATISTICS -->
+    <div id="screen-stats" class="screen">
+      <div class="card">
+        <div class="section-title">Overview</div>
+        <div class="stat-grid" id="stat-overview">
+          <div class="stat-box"><div class="val" id="st-quizzes">0</div><div class="lbl">Quizzes</div></div>
+          <div class="stat-box"><div class="val" id="st-accuracy">—</div><div class="lbl">Accuracy</div></div>
+          <div class="stat-box"><div class="val" id="st-best">—</div><div class="lbl">Best score</div></div>
+          <div class="stat-box"><div class="val" id="st-words">0</div><div class="lbl">Answers</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Progress by chapter</div>
+        <div class="chapter-progress" id="chapter-progress">
+          <div class="empty-state">Play some quizzes to see progress</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Words to review</div>
+        <div class="weak-list" id="weak-list">
+          <div class="empty-state">No missed words yet</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Recent quizzes</div>
+        <div class="history-list" id="history-list">
+          <div class="empty-state">No history yet</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="chapter-actions" style="margin:0; justify-content:center; gap:1rem;">
+          <button type="button" class="link-btn" id="export-stats">Export data</button>
+          <button type="button" class="link-btn danger" id="clear-stats">Clear all stats</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>Netzwerk neu A1 · Local database (IndexedDB)</footer>
+  </div>
+
+  <nav class="bottom-nav">
+    <div class="bottom-nav-inner">
+      <button type="button" class="nav-btn active" data-screen="setup">
+        <span class="icon">📝</span>
+        <span>Quiz</span>
+      </button>
+      <button type="button" class="nav-btn" data-screen="stats">
+        <span class="icon">📊</span>
+        <span>Stats</span>
+      </button>
+    </div>
+  </nav>
+
+  <script>
+    const CHAPTERS = {"1": {"title": "Guten Tag!", "words": [{"de": "guten Tag", "en": "good day / hello"}, {"de": "hallo", "en": "hello"}, {"de": "tschüs", "en": "bye"}, {"de": "auf Wiedersehen", "en": "goodbye"}, {"de": "guten Morgen", "en": "good morning"}, {"de": "guten Abend", "en": "good evening"}, {"de": "gute Nacht", "en": "good night"}, {"de": "danke", "en": "thank you"}, {"de": "bitte", "en": "please / you're welcome"}, {"de": "Entschuldigung", "en": "excuse me / sorry"}, {"de": "ja", "en": "yes"}, {"de": "nein", "en": "no"}, {"de": "und", "en": "and"}, {"de": "oder", "en": "or"}, {"de": "auch", "en": "also / too"}, {"de": "sehr", "en": "very"}, {"de": "ganz", "en": "quite / pretty"}, {"de": "gut", "en": "good"}, {"de": "ich", "en": "I"}, {"de": "du", "en": "you (informal)"}, {"de": "Sie", "en": "you (formal)"}, {"de": "er", "en": "he"}, {"de": "sie", "en": "she / they"}, {"de": "wir", "en": "we"}, {"de": "mein / meine", "en": "my"}, {"de": "dein / deine", "en": "your (informal)"}, {"de": "der Name", "en": "name"}, {"de": "der Vorname", "en": "first name"}, {"de": "der Nachname", "en": "last name"}, {"de": "Herr", "en": "Mr"}, {"de": "Frau", "en": "Mrs / Ms"}, {"de": "heißen", "en": "to be called / named"}, {"de": "sein", "en": "to be"}, {"de": "kommen", "en": "to come"}, {"de": "wohnen", "en": "to live"}, {"de": "sprechen", "en": "to speak"}, {"de": "Deutsch", "en": "German"}, {"de": "Englisch", "en": "English"}, {"de": "die Sprache", "en": "language"}, {"de": "Deutschland", "en": "Germany"}, {"de": "was", "en": "what"}, {"de": "wer", "en": "who"}, {"de": "wo", "en": "where"}, {"de": "woher", "en": "from where"}, {"de": "wie", "en": "how"}, {"de": "formell", "en": "formal"}, {"de": "informell", "en": "informal"}, {"de": "das Wort", "en": "word"}, {"de": "die Person", "en": "person"}, {"de": "hören", "en": "to hear"}, {"de": "lesen", "en": "to read"}, {"de": "machen", "en": "to make / do"}, {"de": "bis bald", "en": "see you soon"}]}, "2": {"title": "Freunde, Kollegen und ich", "words": [{"de": "der Freund", "en": "friend (m) / boyfriend"}, {"de": "die Freundin", "en": "friend (f) / girlfriend"}, {"de": "der Kollege", "en": "colleague (m)"}, {"de": "die Kollegin", "en": "colleague (f)"}, {"de": "die Leute", "en": "people"}, {"de": "gern", "en": "gladly / with pleasure"}, {"de": "fotografieren", "en": "to photograph"}, {"de": "joggen", "en": "to jog"}, {"de": "der Partner", "en": "partner (m)"}, {"de": "die Partnerin", "en": "partner (f)"}, {"de": "interessant", "en": "interesting"}, {"de": "nett", "en": "nice"}, {"de": "sympathisch", "en": "likeable"}, {"de": "bekannt", "en": "well-known / acquainted"}, {"de": "das Hobby", "en": "hobby"}, {"de": "spielen", "en": "to play"}, {"de": "musizieren", "en": "to make music"}, {"de": "singen", "en": "to sing"}, {"de": "tanzen", "en": "to dance"}, {"de": "schwimmen", "en": "to swim"}, {"de": "wandern", "en": "to hike"}, {"de": "kochen", "en": "to cook"}, {"de": "lesen", "en": "to read"}, {"de": "fernsehen", "en": "to watch TV"}, {"de": "das Telefon", "en": "telephone"}, {"de": "anrufen", "en": "to call"}, {"de": "die Nummer", "en": "number"}, {"de": "die E-Mail", "en": "email"}, {"de": "schreiben", "en": "to write"}, {"de": "treffen", "en": "to meet"}, {"de": "kennenlernen", "en": "to get to know"}, {"de": "vorstellen", "en": "to introduce"}, {"de": "der Charakter", "en": "character / personality"}, {"de": "lustig", "en": "funny"}, {"de": "ernst", "en": "serious"}, {"de": "sportlich", "en": "sporty"}, {"de": "faul", "en": "lazy"}, {"de": "fleißig", "en": "hard-working"}, {"de": "freundlich", "en": "friendly"}, {"de": "offen", "en": "open"}]}, "3": {"title": "In Hamburg", "words": [{"de": "die Stadt", "en": "city"}, {"de": "die Stadttour", "en": "city tour"}, {"de": "die Station", "en": "station / stop"}, {"de": "der Bahnhof", "en": "train station"}, {"de": "der Besucher", "en": "visitor (m)"}, {"de": "die Besucherin", "en": "visitor (f)"}, {"de": "das Museum", "en": "museum"}, {"de": "das Theater", "en": "theatre"}, {"de": "das Kino", "en": "cinema"}, {"de": "der Park", "en": "park"}, {"de": "die Kirche", "en": "church"}, {"de": "der Platz", "en": "square / place"}, {"de": "die Straße", "en": "street"}, {"de": "der Hafen", "en": "harbour"}, {"de": "die Brücke", "en": "bridge"}, {"de": "das Rathaus", "en": "town hall"}, {"de": "links", "en": "left"}, {"de": "rechts", "en": "right"}, {"de": "geradeaus", "en": "straight ahead"}, {"de": "hier", "en": "here"}, {"de": "dort", "en": "there"}, {"de": "wohin", "en": "where to"}, {"de": "gehen", "en": "to go"}, {"de": "fahren", "en": "to drive / go (by vehicle)"}, {"de": "die Haltestelle", "en": "stop (bus/tram)"}, {"de": "der Bus", "en": "bus"}, {"de": "die U-Bahn", "en": "subway / metro"}, {"de": "die Straßenbahn", "en": "tram"}, {"de": "die Fahrkarte", "en": "ticket"}, {"de": "kaufen", "en": "to buy"}, {"de": "der Plan", "en": "map / plan"}, {"de": "suchen", "en": "to search / look for"}, {"de": "finden", "en": "to find"}, {"de": "zeigen", "en": "to show"}, {"de": "die Sehenswürdigkeit", "en": "sight / attraction"}, {"de": "besichtigen", "en": "to visit / sightsee"}, {"de": "das Hotel", "en": "hotel"}, {"de": "das Restaurant", "en": "restaurant"}, {"de": "das Café", "en": "café"}, {"de": "der Supermarkt", "en": "supermarket"}, {"de": "die Bank", "en": "bank"}, {"de": "die Post", "en": "post office"}, {"de": "die Bibliothek", "en": "library"}, {"de": "groß", "en": "big / tall"}, {"de": "klein", "en": "small"}, {"de": "schön", "en": "beautiful / nice"}, {"de": "alt", "en": "old"}, {"de": "neu", "en": "new"}, {"de": "modern", "en": "modern"}, {"de": "historisch", "en": "historic"}]}, "4": {"title": "Guten Appetit!", "words": [{"de": "Guten Appetit!", "en": "Enjoy your meal!"}, {"de": "das Essen", "en": "food / meal"}, {"de": "das Frühstück", "en": "breakfast"}, {"de": "das Mittagessen", "en": "lunch"}, {"de": "das Abendessen", "en": "dinner"}, {"de": "essen", "en": "to eat"}, {"de": "trinken", "en": "to drink"}, {"de": "der Hunger", "en": "hunger"}, {"de": "der Durst", "en": "thirst"}, {"de": "hungrig", "en": "hungry"}, {"de": "durstig", "en": "thirsty"}, {"de": "das Brot", "en": "bread"}, {"de": "das Brötchen", "en": "bread roll"}, {"de": "die Butter", "en": "butter"}, {"de": "die Wurst", "en": "sausage"}, {"de": "der Käse", "en": "cheese"}, {"de": "das Ei", "en": "egg"}, {"de": "das Fleisch", "en": "meat"}, {"de": "der Fisch", "en": "fish"}, {"de": "das Gemüse", "en": "vegetables"}, {"de": "das Obst", "en": "fruit"}, {"de": "der Apfel", "en": "apple"}, {"de": "die Banane", "en": "banana"}, {"de": "die Orange", "en": "orange"}, {"de": "die Tomate", "en": "tomato"}, {"de": "die Kartoffel", "en": "potato"}, {"de": "der Reis", "en": "rice"}, {"de": "die Nudel", "en": "noodle / pasta"}, {"de": "die Suppe", "en": "soup"}, {"de": "der Salat", "en": "salad"}, {"de": "die Milch", "en": "milk"}, {"de": "der Kaffee", "en": "coffee"}, {"de": "der Tee", "en": "tea"}, {"de": "das Wasser", "en": "water"}, {"de": "der Saft", "en": "juice"}, {"de": "der Apfelsaft", "en": "apple juice"}, {"de": "das Bier", "en": "beer"}, {"de": "der Wein", "en": "wine"}, {"de": "die Cola", "en": "cola"}, {"de": "die Schokolade", "en": "chocolate"}, {"de": "der Kuchen", "en": "cake"}, {"de": "süß", "en": "sweet"}, {"de": "salzig", "en": "salty"}, {"de": "sauer", "en": "sour"}, {"de": "scharf", "en": "spicy / hot"}, {"de": "lecker", "en": "tasty / delicious"}, {"de": "der Teller", "en": "plate"}, {"de": "das Glas", "en": "glass"}, {"de": "die Tasse", "en": "cup"}, {"de": "die Gabel", "en": "fork"}, {"de": "das Messer", "en": "knife"}, {"de": "der Löffel", "en": "spoon"}, {"de": "die Rechnung", "en": "bill"}, {"de": "bezahlen", "en": "to pay"}, {"de": "kosten", "en": "to cost"}, {"de": "bestellen", "en": "to order"}, {"de": "der Kellner", "en": "waiter"}, {"de": "die Kellnerin", "en": "waitress"}, {"de": "das Restaurant", "en": "restaurant"}, {"de": "vegetarisch", "en": "vegetarian"}]}, "5": {"title": "Alltag und Familie", "words": [{"de": "der Alltag", "en": "everyday life"}, {"de": "die Familie", "en": "family"}, {"de": "der Vater", "en": "father"}, {"de": "die Mutter", "en": "mother"}, {"de": "die Eltern", "en": "parents"}, {"de": "der Sohn", "en": "son"}, {"de": "die Tochter", "en": "daughter"}, {"de": "der Bruder", "en": "brother"}, {"de": "die Schwester", "en": "sister"}, {"de": "die Geschwister", "en": "siblings"}, {"de": "der Mann", "en": "man / husband"}, {"de": "die Frau", "en": "woman / wife"}, {"de": "das Kind", "en": "child"}, {"de": "die Oma", "en": "grandma"}, {"de": "der Opa", "en": "grandpa"}, {"de": "die Großeltern", "en": "grandparents"}, {"de": "besuchen", "en": "to visit"}, {"de": "duschen", "en": "to shower"}, {"de": "die Mensa", "en": "canteen"}, {"de": "die Bibliothek", "en": "library"}, {"de": "aufstehen", "en": "to get up"}, {"de": "schlafen", "en": "to sleep"}, {"de": "frühstücken", "en": "to have breakfast"}, {"de": "arbeiten", "en": "to work"}, {"de": "lernen", "en": "to learn"}, {"de": "einkaufen", "en": "to go shopping"}, {"de": "kochen", "en": "to cook"}, {"de": "putzen", "en": "to clean"}, {"de": "waschen", "en": "to wash"}, {"de": "der Tag", "en": "day"}, {"de": "die Woche", "en": "week"}, {"de": "der Montag", "en": "Monday"}, {"de": "der Dienstag", "en": "Tuesday"}, {"de": "der Mittwoch", "en": "Wednesday"}, {"de": "der Donnerstag", "en": "Thursday"}, {"de": "der Freitag", "en": "Friday"}, {"de": "der Samstag", "en": "Saturday"}, {"de": "der Sonntag", "en": "Sunday"}, {"de": "heute", "en": "today"}, {"de": "morgen", "en": "tomorrow"}, {"de": "gestern", "en": "yesterday"}, {"de": "jetzt", "en": "now"}, {"de": "früh", "en": "early"}, {"de": "spät", "en": "late"}, {"de": "die Uhr", "en": "clock / o'clock"}, {"de": "die Stunde", "en": "hour"}, {"de": "immer", "en": "always"}, {"de": "oft", "en": "often"}, {"de": "manchmal", "en": "sometimes"}, {"de": "selten", "en": "rarely"}, {"de": "nie", "en": "never"}, {"de": "zusammen", "en": "together"}, {"de": "allein", "en": "alone"}]}, "6": {"title": "Zeit mit Freunden", "words": [{"de": "feiern", "en": "to celebrate"}, {"de": "die Party", "en": "party"}, {"de": "das Fitness-Studio", "en": "gym"}, {"de": "die Freizeit", "en": "free time / leisure"}, {"de": "die Freizeitaktivität", "en": "leisure activity"}, {"de": "glauben", "en": "to believe"}, {"de": "klettern", "en": "to climb"}, {"de": "der Sport", "en": "sport"}, {"de": "Fußball spielen", "en": "to play football"}, {"de": "Tennis spielen", "en": "to play tennis"}, {"de": "schwimmen", "en": "to swim"}, {"de": "laufen", "en": "to walk / run"}, {"de": "Rad fahren", "en": "to cycle"}, {"de": "wandern", "en": "to hike"}, {"de": "das Kino", "en": "cinema"}, {"de": "das Konzert", "en": "concert"}, {"de": "das Theater", "en": "theatre"}, {"de": "das Museum", "en": "museum"}, {"de": "ins Kino gehen", "en": "to go to the cinema"}, {"de": "ausgehen", "en": "to go out"}, {"de": "einladen", "en": "to invite"}, {"de": "die Einladung", "en": "invitation"}, {"de": "das Wochenende", "en": "weekend"}, {"de": "der Abend", "en": "evening"}, {"de": "die Nacht", "en": "night"}, {"de": "spaß haben", "en": "to have fun"}, {"de": "langweilig", "en": "boring"}, {"de": "spannend", "en": "exciting"}, {"de": "entspannen", "en": "to relax"}, {"de": "sich treffen", "en": "to meet up"}, {"de": "zusammenkommen", "en": "to get together"}, {"de": "das Spiel", "en": "game"}, {"de": "das Brettspiel", "en": "board game"}, {"de": "Musik hören", "en": "to listen to music"}, {"de": "tanzen", "en": "to dance"}, {"de": "singen", "en": "to sing"}, {"de": "fotografieren", "en": "to take photos"}, {"de": "reisen", "en": "to travel"}, {"de": "der Ausflug", "en": "trip / outing"}, {"de": "das Picknick", "en": "picnic"}]}, "7": {"title": "Arbeitsalltag", "words": [{"de": "der Arbeitsalltag", "en": "workday / daily work"}, {"de": "die Arbeit", "en": "work / job"}, {"de": "der Beruf", "en": "profession / occupation"}, {"de": "arbeiten", "en": "to work"}, {"de": "das Büro", "en": "office"}, {"de": "der Chef", "en": "boss (m)"}, {"de": "die Chefin", "en": "boss (f)"}, {"de": "der Kollege", "en": "colleague (m)"}, {"de": "die Kollegin", "en": "colleague (f)"}, {"de": "das Paket", "en": "package"}, {"de": "annehmen", "en": "to accept"}, {"de": "mitnehmen", "en": "to take along"}, {"de": "der Termin", "en": "appointment"}, {"de": "die Besprechung", "en": "meeting"}, {"de": "die E-Mail", "en": "email"}, {"de": "das Telefon", "en": "telephone"}, {"de": "anrufen", "en": "to call"}, {"de": "der Computer", "en": "computer"}, {"de": "drucken", "en": "to print"}, {"de": "kopieren", "en": "to copy"}, {"de": "die Pause", "en": "break"}, {"de": "die Mittagspause", "en": "lunch break"}, {"de": "der Feierabend", "en": "end of the workday"}, {"de": "überstunden", "en": "overtime"}, {"de": "stressig", "en": "stressful"}, {"de": "entspannt", "en": "relaxed"}, {"de": "wichtig", "en": "important"}, {"de": "dringend", "en": "urgent"}, {"de": "der Kalender", "en": "calendar"}, {"de": "planen", "en": "to plan"}, {"de": "organisieren", "en": "to organise"}, {"de": "die Aufgabe", "en": "task"}, {"de": "das Projekt", "en": "project"}, {"de": "die Firma", "en": "company"}, {"de": "der Kunde", "en": "customer (m)"}, {"de": "die Kundin", "en": "customer (f)"}, {"de": "verkaufen", "en": "to sell"}, {"de": "bestellen", "en": "to order"}, {"de": "liefern", "en": "to deliver"}, {"de": "die Rechnung", "en": "invoice / bill"}, {"de": "bezahlen", "en": "to pay"}, {"de": "verdienen", "en": "to earn"}, {"de": "das Gehalt", "en": "salary"}, {"de": "der Urlaub", "en": "holiday / vacation"}, {"de": "krank", "en": "sick"}, {"de": "gesund", "en": "healthy"}]}, "8": {"title": "Fit und gesund", "words": [{"de": "fit", "en": "fit"}, {"de": "gesund", "en": "healthy"}, {"de": "krank", "en": "sick / ill"}, {"de": "der Arzt", "en": "doctor (m)"}, {"de": "die Ärztin", "en": "doctor (f)"}, {"de": "das Krankenhaus", "en": "hospital"}, {"de": "die Apotheke", "en": "pharmacy"}, {"de": "das Medikament", "en": "medicine"}, {"de": "die Tablette", "en": "pill / tablet"}, {"de": "die Spritze", "en": "injection"}, {"de": "der Schmerz", "en": "pain"}, {"de": "Kopfschmerzen", "en": "headache"}, {"de": "Bauchschmerzen", "en": "stomachache"}, {"de": "Fieber", "en": "fever"}, {"de": "Husten", "en": "cough"}, {"de": "Schnupfen", "en": "cold (runny nose)"}, {"de": "müde", "en": "tired"}, {"de": "schwach", "en": "weak"}, {"de": "stark", "en": "strong"}, {"de": "sich fühlen", "en": "to feel"}, {"de": "weh tun", "en": "to hurt"}, {"de": "untersuchen", "en": "to examine"}, {"de": "verschreiben", "en": "to prescribe"}, {"de": "der Sport", "en": "sport"}, {"de": "Sport treiben", "en": "to do sports"}, {"de": "trainieren", "en": "to train"}, {"de": "das Fitness-Studio", "en": "gym"}, {"de": "joggen", "en": "to jog"}, {"de": "schwimmen", "en": "to swim"}, {"de": "Rad fahren", "en": "to cycle"}, {"de": "Yoga", "en": "yoga"}, {"de": "die Ernährung", "en": "nutrition / diet"}, {"de": "gesund essen", "en": "to eat healthily"}, {"de": "das Vitamin", "en": "vitamin"}, {"de": "das Obst", "en": "fruit"}, {"de": "das Gemüse", "en": "vegetables"}, {"de": "trinken", "en": "to drink"}, {"de": "das Wasser", "en": "water"}, {"de": "rauchen", "en": "to smoke"}, {"de": "schlafen", "en": "to sleep"}, {"de": "sich ausruhen", "en": "to rest"}, {"de": "der Körper", "en": "body"}, {"de": "der Kopf", "en": "head"}, {"de": "der Arm", "en": "arm"}, {"de": "das Bein", "en": "leg"}, {"de": "die Hand", "en": "hand"}, {"de": "der Fuß", "en": "foot"}, {"de": "das Auge", "en": "eye"}, {"de": "das Ohr", "en": "ear"}, {"de": "der Mund", "en": "mouth"}, {"de": "die Nase", "en": "nose"}]}, "9": {"title": "Meine Wohnung", "words": [{"de": "die Wohnung", "en": "apartment / flat"}, {"de": "das Haus", "en": "house"}, {"de": "das Zimmer", "en": "room"}, {"de": "die Küche", "en": "kitchen"}, {"de": "das Bad", "en": "bathroom"}, {"de": "das Wohnzimmer", "en": "living room"}, {"de": "das Schlafzimmer", "en": "bedroom"}, {"de": "der Balkon", "en": "balcony"}, {"de": "der Garten", "en": "garden"}, {"de": "die Garage", "en": "garage"}, {"de": "der Tisch", "en": "table"}, {"de": "der Stuhl", "en": "chair"}, {"de": "das Sofa", "en": "sofa"}, {"de": "das Bett", "en": "bed"}, {"de": "der Schrank", "en": "cupboard / wardrobe"}, {"de": "das Regal", "en": "shelf"}, {"de": "das Fenster", "en": "window"}, {"de": "die Tür", "en": "door"}, {"de": "die Wand", "en": "wall"}, {"de": "der Boden", "en": "floor"}, {"de": "die Decke", "en": "ceiling / blanket"}, {"de": "die Lampe", "en": "lamp"}, {"de": "der Teppich", "en": "carpet"}, {"de": "die Küche", "en": "kitchen"}, {"de": "der Kühlschrank", "en": "fridge"}, {"de": "der Herd", "en": "stove"}, {"de": "die Spülmaschine", "en": "dishwasher"}, {"de": "die Waschmaschine", "en": "washing machine"}, {"de": "das Badezimmer", "en": "bathroom"}, {"de": "die Dusche", "en": "shower"}, {"de": "die Badewanne", "en": "bathtub"}, {"de": "die Toilette", "en": "toilet"}, {"de": "mieten", "en": "to rent"}, {"de": "die Miete", "en": "rent"}, {"de": "der Vermieter", "en": "landlord"}, {"de": "die Nachbarn", "en": "neighbours"}, {"de": "einziehen", "en": "to move in"}, {"de": "ausziehen", "en": "to move out"}, {"de": "möbliert", "en": "furnished"}, {"de": "unmöbliert", "en": "unfurnished"}, {"de": "hell", "en": "bright"}, {"de": "dunkel", "en": "dark"}, {"de": "groß", "en": "big"}, {"de": "klein", "en": "small"}, {"de": "gemütlich", "en": "cosy"}, {"de": "modern", "en": "modern"}, {"de": "die Adresse", "en": "address"}, {"de": "die Etage", "en": "floor (storey)"}, {"de": "der Aufzug", "en": "elevator / lift"}, {"de": "die Treppe", "en": "stairs"}]}, "10": {"title": "Studium und Beruf", "words": [{"de": "das Studium", "en": "studies"}, {"de": "studieren", "en": "to study (at university)"}, {"de": "die Universität", "en": "university"}, {"de": "die Hochschule", "en": "university / college"}, {"de": "der Student", "en": "student (m)"}, {"de": "die Studentin", "en": "student (f)"}, {"de": "der Lehrer", "en": "teacher (m)"}, {"de": "die Lehrerin", "en": "teacher (f)"}, {"de": "der Professor", "en": "professor (m)"}, {"de": "die Vorlesung", "en": "lecture"}, {"de": "das Seminar", "en": "seminar"}, {"de": "die Prüfung", "en": "exam"}, {"de": "die Hausaufgabe", "en": "homework"}, {"de": "lernen", "en": "to learn / study"}, {"de": "der Beruf", "en": "profession"}, {"de": "der Arzt", "en": "doctor (m)"}, {"de": "die Ärztin", "en": "doctor (f)"}, {"de": "der Ingenieur", "en": "engineer"}, {"de": "der Anwalt", "en": "lawyer (m)"}, {"de": "die Anwältin", "en": "lawyer (f)"}, {"de": "der Lehrer", "en": "teacher"}, {"de": "der Verkäufer", "en": "salesperson (m)"}, {"de": "die Verkäuferin", "en": "salesperson (f)"}, {"de": "der Koch", "en": "cook (m)"}, {"de": "die Köchin", "en": "cook (f)"}, {"de": "der Fahrer", "en": "driver"}, {"de": "der Polizist", "en": "police officer (m)"}, {"de": "die Polizistin", "en": "police officer (f)"}, {"de": "der Journalist", "en": "journalist (m)"}, {"de": "die Journalistin", "en": "journalist (f)"}, {"de": "arbeiten als", "en": "to work as"}, {"de": "die Ausbildung", "en": "training / apprenticeship"}, {"de": "das Praktikum", "en": "internship"}, {"de": "der Job", "en": "job"}, {"de": "die Stelle", "en": "position / job"}, {"de": "sich bewerben", "en": "to apply"}, {"de": "der Lebenslauf", "en": "CV / résumé"}, {"de": "das Vorstellungsgespräch", "en": "job interview"}, {"de": "einstellen", "en": "to hire"}, {"de": "kündigen", "en": "to quit / resign"}, {"de": "arbeitslos", "en": "unemployed"}, {"de": "das Gehalt", "en": "salary"}, {"de": "verdienen", "en": "to earn"}, {"de": "interessant", "en": "interesting"}, {"de": "langweilig", "en": "boring"}, {"de": "stressig", "en": "stressful"}, {"de": "abwechslungsreich", "en": "varied"}, {"de": "die Zukunft", "en": "future"}, {"de": "planen", "en": "to plan"}, {"de": "träumen", "en": "to dream"}]}, "11": {"title": "Die Jacke gefällt mir!", "words": [{"de": "die Jacke", "en": "jacket"}, {"de": "gefallen", "en": "to like / to please"}, {"de": "die Kleidung", "en": "clothes"}, {"de": "das Hemd", "en": "shirt"}, {"de": "die Bluse", "en": "blouse"}, {"de": "das T-Shirt", "en": "T-shirt"}, {"de": "der Pullover", "en": "sweater / jumper"}, {"de": "die Hose", "en": "trousers / pants"}, {"de": "der Rock", "en": "skirt"}, {"de": "das Kleid", "en": "dress"}, {"de": "die Jeans", "en": "jeans"}, {"de": "der Mantel", "en": "coat"}, {"de": "die Schuhe", "en": "shoes"}, {"de": "die Socken", "en": "socks"}, {"de": "der Hut", "en": "hat"}, {"de": "die Mütze", "en": "cap / beanie"}, {"de": "der Schal", "en": "scarf"}, {"de": "die Handschuhe", "en": "gloves"}, {"de": "tragen", "en": "to wear"}, {"de": "anprobieren", "en": "to try on"}, {"de": "passen", "en": "to fit"}, {"de": "zu groß", "en": "too big"}, {"de": "zu klein", "en": "too small"}, {"de": "die Größe", "en": "size"}, {"de": "die Farbe", "en": "colour"}, {"de": "rot", "en": "red"}, {"de": "blau", "en": "blue"}, {"de": "grün", "en": "green"}, {"de": "gelb", "en": "yellow"}, {"de": "schwarz", "en": "black"}, {"de": "weiß", "en": "white"}, {"de": "braun", "en": "brown"}, {"de": "grau", "en": "grey"}, {"de": "rosa", "en": "pink"}, {"de": "lila", "en": "purple"}, {"de": "orange", "en": "orange"}, {"de": "bunt", "en": "colourful"}, {"de": "teuer", "en": "expensive"}, {"de": "billig", "en": "cheap"}, {"de": "günstig", "en": "affordable"}, {"de": "der Preis", "en": "price"}, {"de": "kosten", "en": "to cost"}, {"de": "kaufen", "en": "to buy"}, {"de": "verkaufen", "en": "to sell"}, {"de": "das Geschäft", "en": "shop"}, {"de": "das Kaufhaus", "en": "department store"}, {"de": "die Mode", "en": "fashion"}, {"de": "modern", "en": "fashionable / modern"}, {"de": "schick", "en": "chic / elegant"}, {"de": "bequem", "en": "comfortable"}, {"de": "die Kasse", "en": "cash desk / till"}, {"de": "bezahlen", "en": "to pay"}, {"de": "bar", "en": "in cash"}, {"de": "mit Karte", "en": "by card"}]}, "12": {"title": "Ab in den Urlaub!", "words": [{"de": "der Urlaub", "en": "holiday / vacation"}, {"de": "reisen", "en": "to travel"}, {"de": "das Reiseziel", "en": "travel destination"}, {"de": "der Flughafen", "en": "airport"}, {"de": "das Flugzeug", "en": "airplane"}, {"de": "fliegen", "en": "to fly"}, {"de": "der Zug", "en": "train"}, {"de": "die Bahn", "en": "train"}, {"de": "das Auto", "en": "car"}, {"de": "das Taxi", "en": "taxi"}, {"de": "das Fahrrad", "en": "bicycle"}, {"de": "der Bus", "en": "bus"}, {"de": "die Fahrkarte", "en": "ticket"}, {"de": "das Ticket", "en": "ticket"}, {"de": "buchen", "en": "to book"}, {"de": "reservieren", "en": "to reserve"}, {"de": "das Hotel", "en": "hotel"}, {"de": "die Jugendherberge", "en": "youth hostel"}, {"de": "die Unterkunft", "en": "accommodation"}, {"de": "der Koffer", "en": "suitcase"}, {"de": "die Tasche", "en": "bag"}, {"de": "packen", "en": "to pack"}, {"de": "der Pass", "en": "passport"}, {"de": "der Ausweis", "en": "ID card"}, {"de": "das Visum", "en": "visa"}, {"de": "ankommen", "en": "to arrive"}, {"de": "abfahren", "en": "to depart"}, {"de": "der Strand", "en": "beach"}, {"de": "das Meer", "en": "sea"}, {"de": "der See", "en": "lake"}, {"de": "der Berg", "en": "mountain"}, {"de": "der Wald", "en": "forest"}, {"de": "die Insel", "en": "island"}, {"de": "das Dorf", "en": "village"}, {"de": "die Landschaft", "en": "landscape"}, {"de": "wunderschön", "en": "beautiful"}, {"de": "sonnig", "en": "sunny"}, {"de": "regnerisch", "en": "rainy"}, {"de": "windig", "en": "windy"}, {"de": "die Hitze", "en": "heat"}, {"de": "der Schnee", "en": "snow"}, {"de": "das Wetter", "en": "weather"}, {"de": "der Sommer", "en": "summer"}, {"de": "der Winter", "en": "winter"}, {"de": "der Frühling", "en": "spring"}, {"de": "der Herbst", "en": "autumn / fall"}, {"de": "die Sonne", "en": "sun"}, {"de": "der Regen", "en": "rain"}, {"de": "schwimmen", "en": "to swim"}, {"de": "sonnenbaden", "en": "to sunbathe"}, {"de": "wandern", "en": "to hike"}, {"de": "fotografieren", "en": "to take photos"}, {"de": "entspannen", "en": "to relax"}, {"de": "der Traumurlaub", "en": "dream holiday"}, {"de": "einmal", "en": "once"}, {"de": "noch einmal", "en": "once more"}, {"de": "populär", "en": "popular"}, {"de": "die Kultur", "en": "culture"}, {"de": "die Bewegung", "en": "exercise / movement"}]}};
+    const DB_NAME = 'a1_deutsch_quiz';
+    const DB_VER = 1;
+
+    let mode = localStorage.getItem('a1_mode') || 'mc-de-en';
+    let questions = [];
+    let current = 0;
+    let score = 0;
+    let missed = [];
+    let answered = false;
+    let db = null;
+
+    // ---------- IndexedDB ----------
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VER);
+        req.onupgradeneeded = (e) => {
+          const database = e.target.result;
+          if (!database.objectStoreNames.contains('sessions')) {
+            const s = database.createObjectStore('sessions', { keyPath: 'id', autoIncrement: true });
+            s.createIndex('date', 'date', { unique: false });
+          }
+          if (!database.objectStoreNames.contains('wordStats')) {
+            const w = database.createObjectStore('wordStats', { keyPath: 'de' });
+            w.createIndex('misses', 'misses', { unique: false });
+          }
+        };
+        req.onsuccess = (e) => { db = e.target.result; resolve(db); };
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function dbPut(store, value) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(store, 'readwrite');
+        tx.objectStore(store).put(value);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    function dbGetAll(store) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(store, 'readonly');
+        const req = tx.objectStore(store).getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function dbGet(store, key) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(store, 'readonly');
+        const req = tx.objectStore(store).get(key);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    function dbClear(store) {
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(store, 'readwrite');
+        tx.objectStore(store).clear();
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function saveSession(session) {
+      await dbPut('sessions', session);
+      // Update word-level stats
+      for (const m of session.missed) {
+        let ws = await dbGet('wordStats', m.de);
+        if (!ws) ws = { de: m.de, en: m.en, chapter: m.chapter || '', misses: 0, correct: 0 };
+        ws.misses = (ws.misses || 0) + 1;
+        ws.en = m.en;
+        await dbPut('wordStats', ws);
+      }
+      for (const c of session.correctWords || []) {
+        let ws = await dbGet('wordStats', c.de);
+        if (!ws) ws = { de: c.de, en: c.en, chapter: c.chapter || '', misses: 0, correct: 0 };
+        ws.correct = (ws.correct || 0) + 1;
+        ws.en = c.en;
+        await dbPut('wordStats', ws);
+      }
+    }
+
+    // ---------- Navigation ----------
+    function showScreen(name) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      const el = document.getElementById('screen-' + name);
+      if (el) el.classList.add('active');
+      document.querySelectorAll('.nav-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.screen === name ||
+          (name === 'quiz' && b.dataset.screen === 'setup') ||
+          (name === 'results' && b.dataset.screen === 'setup'));
+      });
+      if (name === 'stats') renderStats();
+    }
+
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.screen === 'setup') {
+          showScreen('setup');
+        } else if (btn.dataset.screen === 'stats') {
+          showScreen('stats');
+        }
+      });
+    });
+
+    // ---------- Setup UI ----------
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.mode === mode);
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        mode = btn.dataset.mode;
+        localStorage.setItem('a1_mode', mode);
+      });
+    });
+
+    const grid = document.getElementById('chapter-grid');
+    const savedChapters = JSON.parse(localStorage.getItem('a1_chapters') || 'null');
+    Object.keys(CHAPTERS).sort((a,b) => +a - +b).forEach(num => {
+      const ch = CHAPTERS[num];
+      const label = document.createElement('label');
+      label.className = 'chapter-item';
+      const checked = savedChapters ? savedChapters.includes(num) : true;
+      label.innerHTML = `
+        <input type="checkbox" class="ch-check" value="${num}" ${checked ? 'checked' : ''} />
+        <span class="ch-num">${num}</span>
+        <span class="ch-title">${ch.title}</span>
+        <span class="ch-count">${ch.words.length}</span>
+      `;
+      grid.appendChild(label);
+    });
+
+    function getSelectedChapters() {
+      return [...document.querySelectorAll('.ch-check:checked')].map(c => c.value);
+    }
+
+    function updateSelectedCount() {
+      const selected = getSelectedChapters();
+      localStorage.setItem('a1_chapters', JSON.stringify(selected));
+      let total = 0;
+      selected.forEach(n => total += CHAPTERS[n].words.length);
+      document.getElementById('selected-count').textContent =
+        selected.length === 0 ? 'Select at least one chapter'
+        : `${selected.length} chapter${selected.length > 1 ? 's' : ''} · ${total} words`;
+      document.getElementById('start-btn').disabled = selected.length === 0;
+    }
+
+    document.querySelectorAll('.ch-check').forEach(c => c.addEventListener('change', updateSelectedCount));
+    document.getElementById('select-all').addEventListener('click', () => {
+      document.querySelectorAll('.ch-check').forEach(c => c.checked = true);
+      updateSelectedCount();
+    });
+    document.getElementById('select-none').addEventListener('click', () => {
+      document.querySelectorAll('.ch-check').forEach(c => c.checked = false);
+      updateSelectedCount();
+    });
+    updateSelectedCount();
+
+    const savedN = localStorage.getItem('a1_num');
+    if (savedN) document.getElementById('num-questions').value = savedN;
+    document.getElementById('num-questions').addEventListener('change', e => {
+      localStorage.setItem('a1_num', e.target.value);
+    });
+
+    // ---------- Quiz logic ----------
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function normalize(s) {
+      return s.toLowerCase()
+        .replace(/[ä]/g, 'a').replace(/[ö]/g, 'o').replace(/[ü]/g, 'u')
+        .replace(/ß/g, 'ss')
+        .replace(/[^\w\s]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function buildPool() {
+      const selected = getSelectedChapters();
+      let pool = [];
+      selected.forEach(num => {
+        CHAPTERS[num].words.forEach(w => {
+          pool.push({ ...w, chapter: num, chapterTitle: CHAPTERS[num].title });
+        });
+      });
+      const seen = new Set();
+      return pool.filter(w => {
+        const k = w.de.toLowerCase();
+        if (seen.has(k)) return false;
+        seen.add(k);
+        return true;
+      });
+    }
+
+    let correctWords = [];
+
+    function startQuiz() {
+      let pool = buildPool();
+      if (!pool.length) return;
+      if (document.getElementById('shuffle').checked) pool = shuffle(pool);
+      let n = parseInt(document.getElementById('num-questions').value, 10);
+      if (n === 0 || n > pool.length) n = pool.length;
+      questions = pool.slice(0, n);
+      current = 0;
+      score = 0;
+      missed = [];
+      correctWords = [];
+      answered = false;
+      showScreen('quiz');
+      showQuestion();
+    }
+
+    function showQuestion() {
+      answered = false;
+      const q = questions[current];
+      const isDeToEn = mode.includes('de-en');
+      const isMC = mode.startsWith('mc');
+
+      document.getElementById('direction').textContent = isDeToEn ? 'German → English' : 'English → German';
+      document.getElementById('chapter-tag').textContent = `Kap. ${q.chapter}: ${q.chapterTitle}`;
+      document.getElementById('prompt').textContent = isDeToEn ? q.de : q.en;
+      document.getElementById('q-counter').textContent = `${current + 1} / ${questions.length}`;
+      document.getElementById('score-live').textContent = `Score: ${score}`;
+      document.getElementById('progress').style.width = `${(current / questions.length) * 100}%`;
+      document.getElementById('feedback').textContent = '';
+      document.getElementById('feedback').className = 'feedback';
+      document.getElementById('next-btn').style.display = 'none';
+      document.getElementById('skip-btn').style.display = 'inline-block';
+
+      const optionsArea = document.getElementById('options-area');
+      const typeArea = document.getElementById('type-area');
+      const typeInput = document.getElementById('type-input');
+
+      if (isMC) {
+        optionsArea.style.display = 'grid';
+        typeArea.style.display = 'none';
+        const correct = isDeToEn ? q.en : q.de;
+        const sameCh = questions.filter(v => v.chapter === q.chapter && (isDeToEn ? v.en : v.de) !== correct);
+        const others = buildPool().filter(v => (isDeToEn ? v.en : v.de) !== correct);
+        let distractors = shuffle(sameCh.length >= 3 ? sameCh : others)
+          .slice(0, 3)
+          .map(v => isDeToEn ? v.en : v.de);
+        while (distractors.length < 3) {
+          const extra = shuffle(others).find(v => {
+            const t = isDeToEn ? v.en : v.de;
+            return !distractors.includes(t) && t !== correct;
+          });
+          if (!extra) break;
+          distractors.push(isDeToEn ? extra.en : extra.de);
+        }
+        const opts = shuffle([correct, ...distractors]);
+        optionsArea.innerHTML = '';
+        opts.forEach(opt => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'option';
+          btn.textContent = opt;
+          btn.addEventListener('click', () => checkMC(btn, opt, correct, q));
+          optionsArea.appendChild(btn);
+        });
+      } else {
+        optionsArea.style.display = 'none';
+        typeArea.style.display = 'block';
+        typeInput.value = '';
+        typeInput.className = 'type-input';
+        typeInput.focus();
+        typeInput.onkeydown = (e) => {
+          if (e.key === 'Enter' && !answered) checkType(q);
+        };
+      }
+    }
+
+    function checkMC(btn, chosen, correct, q) {
+      if (answered) return;
+      answered = true;
+      document.querySelectorAll('.option').forEach(o => {
+        o.classList.add('disabled');
+        if (o.textContent === correct) o.classList.add('correct');
+      });
+      if (chosen === correct) {
+        score++;
+        correctWords.push({ de: q.de, en: q.en, chapter: q.chapter });
+        document.getElementById('feedback').textContent = '✓ Correct!';
+        document.getElementById('feedback').className = 'feedback ok';
+      } else {
+        btn.classList.add('wrong');
+        document.getElementById('feedback').textContent = `✗ Correct: ${correct}`;
+        document.getElementById('feedback').className = 'feedback bad';
+        missed.push({ de: q.de, en: q.en, chapter: q.chapter });
+      }
+      document.getElementById('score-live').textContent = `Score: ${score}`;
+      document.getElementById('next-btn').style.display = 'inline-block';
+      document.getElementById('skip-btn').style.display = 'none';
+    }
+
+    function checkType(q) {
+      if (answered) return;
+      answered = true;
+      const isDeToEn = mode.includes('de-en');
+      const correct = isDeToEn ? q.en : q.de;
+      const input = document.getElementById('type-input');
+      const user = input.value.trim();
+      const ok = normalize(user) === normalize(correct) ||
+        normalize(user) === normalize(correct.split('/')[0].trim()) ||
+        correct.toLowerCase().split(/[\/,]/).some(p => normalize(p.trim()) === normalize(user));
+
+      if (ok) {
+        score++;
+        correctWords.push({ de: q.de, en: q.en, chapter: q.chapter });
+        input.classList.add('correct');
+        document.getElementById('feedback').textContent = '✓ Correct!';
+        document.getElementById('feedback').className = 'feedback ok';
+      } else {
+        input.classList.add('wrong');
+        document.getElementById('feedback').textContent = `✗ Correct: ${correct}`;
+        document.getElementById('feedback').className = 'feedback bad';
+        missed.push({ de: q.de, en: q.en, chapter: q.chapter });
+      }
+      document.getElementById('score-live').textContent = `Score: ${score}`;
+      document.getElementById('next-btn').style.display = 'inline-block';
+      document.getElementById('skip-btn').style.display = 'none';
+    }
+
+    function nextQuestion() {
+      current++;
+      if (current >= questions.length) finishQuiz();
+      else showQuestion();
+    }
+
+    function skipQuestion() {
+      const q = questions[current];
+      missed.push({ de: q.de, en: q.en, chapter: q.chapter });
+      nextQuestion();
+    }
+
+    async function finishQuiz() {
+      const pct = Math.round((score / questions.length) * 100);
+      const session = {
+        date: new Date().toISOString(),
+        mode,
+        chapters: getSelectedChapters(),
+        total: questions.length,
+        correct: score,
+        percent: pct,
+        missed: missed.map(m => ({ de: m.de, en: m.en, chapter: m.chapter })),
+        correctWords: correctWords.map(c => ({ de: c.de, en: c.en, chapter: c.chapter }))
+      };
+
+      try {
+        await saveSession(session);
+        document.getElementById('saved-note').textContent = '✓ Saved to local database';
+      } catch (e) {
+        document.getElementById('saved-note').textContent = 'Could not save stats';
+        console.warn(e);
+      }
+
+      showScreen('results');
+      const el = document.getElementById('final-score');
+      el.textContent = pct + '%';
+      el.className = 'score-big ' + (pct >= 80 ? 'good' : pct >= 50 ? 'mid' : 'low');
+      document.getElementById('final-detail').textContent = `${score} / ${questions.length} correct`;
+
+      const list = document.getElementById('missed-list');
+      if (!missed.length) {
+        list.innerHTML = '<p style="color:var(--success)">Perfect score! 🎉</p>';
+      } else {
+        list.innerHTML = '<h3>Review these:</h3>' + missed.map(m =>
+          `<div class="missed-item"><span class="de">${m.de}</span><span class="en">${m.en}</span></div>`
+        ).join('');
+      }
+    }
+
+    // ---------- Stats rendering ----------
+    async function renderStats() {
+      if (!db) return;
+      const sessions = await dbGetAll('sessions');
+      const wordStats = await dbGetAll('wordStats');
+
+      const totalQuizzes = sessions.length;
+      let totalCorrect = 0, totalAnswers = 0, best = 0;
+      sessions.forEach(s => {
+        totalCorrect += s.correct || 0;
+        totalAnswers += s.total || 0;
+        if ((s.percent || 0) > best) best = s.percent;
+      });
+      const accuracy = totalAnswers ? Math.round((totalCorrect / totalAnswers) * 100) : null;
+
+      document.getElementById('st-quizzes').textContent = totalQuizzes;
+      document.getElementById('st-accuracy').textContent = accuracy !== null ? accuracy + '%' : '—';
+      document.getElementById('st-best').textContent = totalQuizzes ? best + '%' : '—';
+      document.getElementById('st-words').textContent = totalAnswers;
+
+      // Chapter progress: based on unique words answered correctly at least once vs chapter size
+      // Simpler: average score on quizzes that included that chapter
+      const chScores = {};
+      Object.keys(CHAPTERS).forEach(n => { chScores[n] = { sum: 0, count: 0 }; });
+      sessions.forEach(s => {
+        (s.chapters || []).forEach(ch => {
+          if (chScores[ch]) {
+            chScores[ch].sum += s.percent || 0;
+            chScores[ch].count += 1;
+          }
+        });
+      });
+
+      const progEl = document.getElementById('chapter-progress');
+      const hasProg = Object.values(chScores).some(c => c.count > 0);
+      if (!hasProg) {
+        progEl.innerHTML = '<div class="empty-state">Play some quizzes to see progress</div>';
+      } else {
+        progEl.innerHTML = Object.keys(CHAPTERS).sort((a,b)=>+a-+b).map(n => {
+          const c = chScores[n];
+          const avg = c.count ? Math.round(c.sum / c.count) : 0;
+          const title = CHAPTERS[n].title;
+          return `<div class="ch-prog-row">
+            <span class="name">${n}. ${title}</span>
+            <div class="ch-prog-bar"><div class="ch-prog-fill" style="width:${avg}%"></div></div>
+            <span class="ch-prog-pct">${c.count ? avg + '%' : '—'}</span>
+          </div>`;
+        }).join('');
+      }
+
+      // Weak words
+      const weak = wordStats
+        .filter(w => (w.misses || 0) > 0)
+        .sort((a, b) => (b.misses || 0) - (a.misses || 0))
+        .slice(0, 15);
+      const weakEl = document.getElementById('weak-list');
+      if (!weak.length) {
+        weakEl.innerHTML = '<div class="empty-state">No missed words yet</div>';
+      } else {
+        weakEl.innerHTML = weak.map(w =>
+          `<div class="weak-item"><span><strong>${w.de}</strong> — ${w.en}</span><span class="count">${w.misses}× missed</span></div>`
+        ).join('');
+      }
+
+      // History (newest first)
+      const hist = [...sessions].sort((a, b) => (b.date || '').localeCompare(a.date || '')).slice(0, 20);
+      const histEl = document.getElementById('history-list');
+      if (!hist.length) {
+        histEl.innerHTML = '<div class="empty-state">No history yet</div>';
+      } else {
+        histEl.innerHTML = hist.map(s => {
+          const d = s.date ? new Date(s.date) : null;
+          const dateStr = d ? d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+          const cls = (s.percent || 0) >= 80 ? 'good' : (s.percent || 0) >= 50 ? 'mid' : 'low';
+          return `<div class="history-item">
+            <div><div>${s.correct}/${s.total} · ${modeLabel(s.mode)}</div><div class="date">${dateStr}</div></div>
+            <div class="score ${cls}">${s.percent}%</div>
+          </div>`;
+        }).join('');
+      }
+    }
+
+    function modeLabel(m) {
+      if (!m) return '';
+      if (m === 'mc-de-en') return 'MC DE→EN';
+      if (m === 'mc-en-de') return 'MC EN→DE';
+      if (m === 'type-de-en') return 'Type DE→EN';
+      if (m === 'type-en-de') return 'Type EN→DE';
+      return m;
+    }
+
+    document.getElementById('export-stats').addEventListener('click', async () => {
+      const sessions = await dbGetAll('sessions');
+      const wordStats = await dbGetAll('wordStats');
+      const data = { exported: new Date().toISOString(), sessions, wordStats };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'a1-quiz-stats.json';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+
+    document.getElementById('clear-stats').addEventListener('click', async () => {
+      if (!confirm('Delete all quiz history and word statistics?')) return;
+      await dbClear('sessions');
+      await dbClear('wordStats');
+      renderStats();
+    });
+
+    document.getElementById('start-btn').addEventListener('click', startQuiz);
+    document.getElementById('next-btn').addEventListener('click', nextQuestion);
+    document.getElementById('skip-btn').addEventListener('click', skipQuestion);
+    document.getElementById('retry-btn').addEventListener('click', startQuiz);
+    document.getElementById('home-btn').addEventListener('click', () => showScreen('setup'));
+
+    // Init
+    openDB().then(() => {
+      console.log('Local database ready');
+    }).catch(err => console.warn('DB error', err));
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>

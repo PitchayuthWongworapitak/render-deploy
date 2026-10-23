@@ -1,0 +1,19 @@
+{
+  "name": "Netzwerk neu A1 Vocabulary Quiz",
+  "short_name": "A1 Deutsch Quiz",
+  "description": "German ↔ English vocabulary trainer based on Netzwerk neu A1",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f1419",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
